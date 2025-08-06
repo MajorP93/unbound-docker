@@ -181,9 +181,10 @@ server:
     # Deny queries of type ANY with an empty response.
     deny-any: yes
 
-    # Harden against algorithm downgrade when multiple algorithms are
-    # advertised in the DS record.
-    harden-algo-downgrade: yes
+    # advertised in the DS record.  If no, allows any algorithm
+    # to validate the zone which is the standard behavior for validators.
+    # Check the manpage for detailed information.
+    harden-algo-downgrade: no
 
     # Harden against unknown records in the authority section and additional
     # section. If no, such records are copied from the upstream and presented
