@@ -1,5 +1,5 @@
 FROM debian:bookworm AS openssl
-LABEL maintainer="Matthew Vance"
+LABEL maintainer="MajorP93"
 
 ENV VERSION_OPENSSL=openssl-3.3.4 \
     SHA256_OPENSSL=8d1a5fc323d3fd351dc05458457fd48f78652d2a498e1d70ffea07b4d0eb3fa8 \
@@ -56,7 +56,7 @@ RUN set -e -x && \
         /var/lib/apt/lists/*
 
 FROM debian:bookworm AS unbound
-LABEL maintainer="Matthew Vance"
+LABEL maintainer="MajorP93"
 
 ENV NAME=unbound \
     UNBOUND_VERSION=1.23.1 \
@@ -110,7 +110,7 @@ RUN build_deps="curl gcc libc-dev libevent-dev libexpat1-dev libnghttp2-dev make
 
 
 FROM debian:bookworm
-LABEL maintainer="Matthew Vance"
+LABEL maintainer="MajorP93"
 
 ENV NAME=unbound \
     SUMMARY="${NAME} is a validating, recursive, and caching DNS resolver." \
@@ -148,12 +148,12 @@ WORKDIR /opt/unbound/
 ENV PATH /opt/unbound/sbin:"$PATH"
 
 LABEL org.opencontainers.image.version=${UNBOUND_VERSION} \
-      org.opencontainers.image.title="mvance/unbound" \
+      org.opencontainers.image.title="majorp93/unbound" \
       org.opencontainers.image.description="a validating, recursive, and caching DNS resolver" \
-      org.opencontainers.image.url="https://github.com/MatthewVance/unbound-docker" \
-      org.opencontainers.image.vendor="Matthew Vance" \
+      org.opencontainers.image.url="https://github.com/MajorP93/unbound-docker" \
+      org.opencontainers.image.vendor="MajorP93" \
       org.opencontainers.image.licenses="MIT" \
-      org.opencontainers.image.source="https://github.com/MatthewVance/unbound-docker"
+      org.opencontainers.image.source="https://github.com/MajorP93/unbound-docker"
 
 EXPOSE 53/tcp
 EXPOSE 53/udp
