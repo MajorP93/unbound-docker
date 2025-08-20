@@ -1,8 +1,8 @@
 FROM debian:bookworm AS openssl
 LABEL maintainer="Matthew Vance"
 
-ENV VERSION_OPENSSL=openssl-3.3.2 \
-    SHA256_OPENSSL=2e8a40b01979afe8be0bbfb3de5dc1c6709fedb46d6c89c10da114ab5fc3d281 \
+ENV VERSION_OPENSSL=openssl-3.3.4 \
+    SHA256_OPENSSL=8d1a5fc323d3fd351dc05458457fd48f78652d2a498e1d70ffea07b4d0eb3fa8 \
     SOURCE_OPENSSL=https://www.openssl.org/source/ \
     # OpenSSL OMC
     OPGP_OPENSSL_1=EFC0A467D613CB83C7ED6D30D894E2CE8B3D79F5 \
