@@ -60,6 +60,14 @@ server:
     # Set the working directory for the program.
     directory: "/opt/unbound/etc/unbound"
 
+	# buffer size for UDP port 53 incoming (SO_RCVBUF socket option).
+	# 0 is system default.  Use 4m to catch query spikes for busy servers.
+	so-rcvbuf: 0
+
+	# buffer size for UDP port 53 outgoing (SO_SNDBUF socket option).
+	# 0 is system default. Set larger to handle spikes on very busy servers.
+	so-sndbuf: 0
+
     # If enabled, Unbound will respond with Extended DNS Error codes (RFC 8914).
     # These EDEs attach informative error messages to a response for various
     # errors.
