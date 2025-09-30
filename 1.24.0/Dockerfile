@@ -1,4 +1,4 @@
-FROM debian:bookworm AS openssl
+FROM debian:trixie AS openssl
 LABEL maintainer="MajorP93"
 
 ENV VERSION_OPENSSL=openssl-3.5.4 \
@@ -55,7 +55,7 @@ RUN set -e -x && \
         /var/tmp/* \
         /var/lib/apt/lists/*
 
-FROM debian:bookworm AS unbound
+FROM debian:trixie AS unbound
 LABEL maintainer="MajorP93"
 
 ENV NAME=unbound \
@@ -109,7 +109,7 @@ RUN build_deps="curl gcc libc-dev libevent-dev libexpat1-dev libnghttp2-dev make
         /var/lib/apt/lists/*
 
 
-FROM debian:bookworm
+FROM debian:trixie-slim
 LABEL maintainer="MajorP93"
 
 ENV NAME=unbound \
