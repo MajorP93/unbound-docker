@@ -1,4 +1,4 @@
-FROM debian:trixie AS openssl
+FROM alpine:3.22 AS openssl
 LABEL maintainer="MajorP93"
 
 ENV VERSION_OPENSSL=openssl-3.5.4 \
@@ -23,19 +23,26 @@ ENV VERSION_OPENSSL=openssl-3.5.4 \
 
 WORKDIR /tmp/src
 
-RUN set -e -x && \
-    build_deps="build-essential ca-certificates curl dirmngr gnupg libidn2-0-dev libssl-dev" && \
-    DEBIAN_FRONTEND=noninteractive apt-get update && apt-get install -y --no-install-recommends \
-      $build_deps && \
-    curl -L $SOURCE_OPENSSL$VERSION_OPENSSL.tar.gz -o openssl.tar.gz && \
-    echo "${SHA256_OPENSSL} ./openssl.tar.gz" | sha256sum -c - && \
-    curl -L $SOURCE_OPENSSL$VERSION_OPENSSL.tar.gz.asc -o openssl.tar.gz.asc && \
-    GNUPGHOME="$(mktemp -d)" && \
-    export GNUPGHOME && \
-    gpg --no-tty --keyserver keyserver.ubuntu.com --recv-keys "$OPGP_OPENSSL_1" "$OPGP_OPENSSL_2" "$OPGP_OPENSSL_3" "$OPGP_OPENSSL_4" "$OPGP_OPENSSL_5" "$OPGP_OPENSSL_6" "$OPGP_OPENSSL_7" "$OPGP_OPENSSL_8" && \
+RUN set -eux && \
+    apk add --no-cache --virtual .build-deps \
+      build-base \
+      ca-certificates \
+      curl \
+      gnupg \
+      perl \
+      pkgconf \
+      linux-headers \
+      libidn2-dev && \
+    curl -L "${SOURCE_OPENSSL}${VERSION_OPENSSL}.tar.gz" -o openssl.tar.gz && \
+    echo "${SHA256_OPENSSL}  openssl.tar.gz" | sha256sum -c - && \
+    curl -L "${SOURCE_OPENSSL}${VERSION_OPENSSL}.tar.gz.asc" -o openssl.tar.gz.asc && \
+    export GNUPGHOME="$(mktemp -d)" && \
+    gpg --no-tty --keyserver hkps://keyserver.ubuntu.com --recv-keys \
+      "$OPGP_OPENSSL_1" "$OPGP_OPENSSL_2" "$OPGP_OPENSSL_3" "$OPGP_OPENSSL_4" \
+      "$OPGP_OPENSSL_5" "$OPGP_OPENSSL_6" "$OPGP_OPENSSL_7" "$OPGP_OPENSSL_8" && \
     gpg --batch --verify openssl.tar.gz.asc openssl.tar.gz && \
     tar xzf openssl.tar.gz && \
-    cd $VERSION_OPENSSL && \
+    cd "${VERSION_OPENSSL}" && \
     ./config \
       --prefix=/opt/openssl \
       --openssldir=/opt/openssl \
@@ -46,106 +53,90 @@ RUN set -e -x && \
       -DOPENSSL_NO_HEARTBEATS \
       -fstack-protector-strong && \
     make depend && \
-    nproc | xargs -I % make -j% && \
+    make -j"$(getconf _NPROCESSORS_ONLN 2>/dev/null || echo 1)" && \
     make install_sw && \
-    apt-get purge -y --auto-remove \
-      $build_deps && \
-    rm -rf \
-        /tmp/* \
-        /var/tmp/* \
-        /var/lib/apt/lists/*
+    apk del .build-deps && \
+    rm -rf /var/cache/apk/* /tmp/* /var/tmp/* /root/.gnupg
 
-FROM debian:trixie AS unbound
+FROM alpine:3.22 AS unbound
 LABEL maintainer="MajorP93"
 
-ENV NAME=unbound \
-    UNBOUND_VERSION=1.24.1 \
+ENV UNBOUND_VERSION=1.24.1 \
     UNBOUND_SHA256=7f2b1633e239409619ae0527f67878b0f33ae0ec0ee5a3a51c042c359ba1eeab \
-    UNBOUND_DOWNLOAD_URL=https://nlnetlabs.nl/downloads/unbound/unbound-1.24.1.tar.gz
+    UNBOUND_DOWNLOAD_URL=https://nlnetlabs.nl/downloads/unbound/
 
 WORKDIR /tmp/src
-
 COPY --from=openssl /opt/openssl /opt/openssl
 
-RUN build_deps="curl gcc libc-dev libevent-dev libexpat1-dev libnghttp2-dev make" && \
-    set -x && \
-    DEBIAN_FRONTEND=noninteractive apt-get update && apt-get install -y --no-install-recommends \
-      $build_deps \
-      bsdmainutils \
-      ca-certificates \
-      ldnsutils \
-      libevent-2.1-7 \
-      libexpat1 \
-      libprotobuf-c-dev \
-      protobuf-c-compiler && \
-    curl -sSL $UNBOUND_DOWNLOAD_URL -o unbound.tar.gz && \
-    echo "${UNBOUND_SHA256} *unbound.tar.gz" | sha256sum -c - && \
+RUN set -eux && \
+    apk add --no-cache --virtual .build-deps \
+      build-base \
+      curl \
+      libevent-dev \
+      expat-dev \
+      ldns-dev \
+      nghttp2-dev \
+      protobuf-c-dev \
+      pkgconf \
+      linux-headers && \
+    apk add --no-cache ca-certificates && \
+    curl -sSL "${UNBOUND_DOWNLOAD_URL}unbound-${UNBOUND_VERSION}.tar.gz" -o unbound.tar.gz && \
+    echo "${UNBOUND_SHA256}  unbound.tar.gz" | sha256sum -c - && \
     tar xzf unbound.tar.gz && \
-    rm -f unbound.tar.gz && \
-    cd unbound-1.24.1 && \
-    groupadd _unbound && \
-    useradd -g _unbound -s /dev/null -d /etc _unbound && \
+    cd "unbound-${UNBOUND_VERSION}" && \
+    addgroup -S _unbound && \
+    adduser -S -G _unbound -h /etc -s /sbin/nologin _unbound && \
     ./configure \
-        --disable-dependency-tracking \
-        --prefix=/opt/unbound \
-        --with-pthreads \
-        --with-username=_unbound \
-        --with-ssl=/opt/openssl \
-        --with-libevent \
-        --with-libnghttp2 \
-        --enable-dnstap \
-        --enable-tfo-server \
-        --enable-tfo-client \
-        --enable-event-api \
-        --enable-subnet && \
-    make install && \
+      --disable-dependency-tracking \
+      --prefix=/opt/unbound \
+      --with-pthreads \
+      --with-username=_unbound \
+      --with-ssl=/opt/openssl \
+      --with-libevent \
+      --with-libnghttp2 \
+      --enable-dnstap \
+      --enable-tfo-server \
+      --enable-tfo-client \
+      --enable-event-api \
+      --enable-subnet && \
+    make -j"$(getconf _NPROCESSORS_ONLN 2>/dev/null || echo 1)" install && \
     mv /opt/unbound/etc/unbound/unbound.conf /opt/unbound/etc/unbound/unbound.conf.example && \
-    apt-get purge -y --auto-remove \
-      $build_deps && \
-    rm -rf \
-        /opt/unbound/share/man \
-        /tmp/* \
-        /var/tmp/* \
-        /var/lib/apt/lists/*
+    apk del .build-deps && \
+    rm -rf /tmp/* /var/tmp/* /var/cache/apk/* /opt/unbound/share/man
 
-
-FROM debian:trixie-slim
+FROM alpine:3.22
 LABEL maintainer="MajorP93"
 
 ENV NAME=unbound \
-    SUMMARY="${NAME} is a validating, recursive, and caching DNS resolver." \
-    DESCRIPTION="${NAME} is a validating, recursive, and caching DNS resolver."
+    SUMMARY="unbound is a validating, recursive, and caching DNS resolver." \
+    DESCRIPTION="unbound is a validating, recursive, and caching DNS resolver." \
+    PATH=/opt/unbound/sbin:"$PATH"
 
 WORKDIR /tmp/src
 
 COPY --from=unbound /opt /opt
 
-RUN set -x && \
-    DEBIAN_FRONTEND=noninteractive apt-get update && apt-get install -y --no-install-recommends \
-      bsdmainutils \
+RUN set -eux && \
+    apk add --no-cache \
+      bash \
+      perl \
+      coreutils \
       ca-certificates \
-      ldnsutils \
-      libevent-2.1-7 \
-      libnghttp2-14 \
-      libexpat1 \
-      libprotobuf-c1 && \
-    groupadd _unbound && \
-    useradd -g _unbound -s /dev/null -d /etc _unbound && \
-    apt-get purge -y --auto-remove \
-      $build_deps && \
-    rm -rf \
-        /opt/unbound/share/man \
-        /tmp/* \
-        /var/tmp/* \
-        /var/lib/apt/lists/*
+      drill \
+      ldns-tools \
+      libevent \
+      nghttp2 \
+      expat \
+      protobuf-c && \
+    addgroup -S _unbound && \
+    adduser -S -G _unbound -h /etc -s /sbin/nologin _unbound && \
+    rm -rf /var/cache/apk/* /tmp/*
 
 COPY data/ /
 
 RUN chmod +x /unbound.sh
 
 WORKDIR /opt/unbound/
-
-ENV PATH /opt/unbound/sbin:"$PATH"
 
 LABEL org.opencontainers.image.version=${UNBOUND_VERSION} \
       org.opencontainers.image.title="majorp93/unbound" \
