@@ -1,4 +1,5 @@
 # Unbound DNS Server Docker Image
+This docker image contains versions of Unbound and OpenSSL which are compiled at build-time. If you prefer a more minimalistic docker image that can be used the same way and is based on the pre-compiled version of Unbound from the Alpine repository you can use: https://github.com/MajorP93/unbound-docker-minimal
 
 ## Supported tags and respective `Dockerfile` links
 - [`1.24.1`, `latest` (*1.24.1/Dockerfile*)](https://github.com/MajorP93/unbound-docker/tree/master/1.24.1)
