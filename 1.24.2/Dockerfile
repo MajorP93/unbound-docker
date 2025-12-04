@@ -1,4 +1,4 @@
-FROM alpine:3.22 AS openssl
+FROM alpine:3.23 AS openssl
 LABEL maintainer="MajorP93"
 
 ENV VERSION_OPENSSL=openssl-3.5.4 \
@@ -58,7 +58,7 @@ RUN set -eux && \
     apk del .build-deps && \
     rm -rf /var/cache/apk/* /tmp/* /var/tmp/* /root/.gnupg
 
-FROM alpine:3.22 AS unbound
+FROM alpine:3.23 AS unbound
 LABEL maintainer="MajorP93"
 
 ENV UNBOUND_VERSION=1.24.2 \
@@ -104,7 +104,7 @@ RUN set -eux && \
     apk del .build-deps && \
     rm -rf /tmp/* /var/tmp/* /var/cache/apk/* /opt/unbound/share/man
 
-FROM alpine:3.22
+FROM alpine:3.23
 LABEL maintainer="MajorP93"
 
 ENV NAME=unbound \
