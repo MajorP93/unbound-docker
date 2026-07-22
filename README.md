@@ -2,7 +2,8 @@
 This docker image contains versions of Unbound and OpenSSL which are compiled at build-time. If you prefer a more minimalistic docker image that can be used the same way and is based on the pre-compiled version of Unbound from the Alpine repository you can use: https://github.com/MajorP93/unbound-docker-minimal
 
 ## Supported tags and respective `Dockerfile` links
-- [`1.25.1`, `latest` (*1.25.1/Dockerfile*)](https://github.com/MajorP93/unbound-docker/tree/master/1.25.1)
+- [`1.25.2`, `latest` (*1.25.2/Dockerfile*)](https://github.com/MajorP93/unbound-docker/tree/master/1.25.2)
+- [`1.25.1`, (*1.25.1/Dockerfile*)](https://github.com/MajorP93/unbound-docker/tree/master/1.25.1)
 - [`1.25.0`, (*1.25.0/Dockerfile*)](https://github.com/MajorP93/unbound-docker/tree/master/1.25.0)
 - [`1.24.2`, (*1.24.2/Dockerfile*)](https://github.com/MajorP93/unbound-docker/tree/master/1.24.2)
 - [`1.24.1`, (*1.24.1/Dockerfile*)](https://github.com/MajorP93/unbound-docker/tree/master/1.24.1)
